@@ -148,7 +148,5 @@ localStorage is accessible to any JavaScript running on the page, making it vuln
 ## Future Improvements
 
 - Swap SQLite for PostgreSQL for production use
-- Move refresh token to an httpOnly cookie (immune to JavaScript access)
 - Add email verification on registration
-- Add rate limiting on login to prevent brute-force attacks
 - Dockerize the application
