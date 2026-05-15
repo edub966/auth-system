@@ -2,154 +2,460 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Auth System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: sans-serif; background: #f4f4f5; display: flex; justify-content: center; padding: 40px 16px; }
-    .container { width: 100%; max-width: 420px; }
-    h1 { font-size: 20px; font-weight: 600; margin-bottom: 24px; color: #111; }
-    .card { background: white; border-radius: 10px; padding: 24px; margin-bottom: 16px; border: 1px solid #e4e4e7; }
-    .card h2 { font-size: 14px; font-weight: 600; color: #444; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.05em; }
-    input { width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; margin-bottom: 10px; outline: none; }
-    input:focus { border-color: #6366f1; }
-    button { width: 100%; padding: 9px; border-radius: 6px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; }
-    .btn-primary { background: #6366f1; color: white; }
-    .btn-primary:hover { background: #4f46e5; }
-    .btn-secondary { background: #f4f4f5; color: #333; border: 1px solid #e4e4e7; margin-top: 8px; }
-    .btn-danger { background: #ef4444; color: white; margin-top: 8px; }
-    .message { font-size: 13px; margin-top: 10px; padding: 8px 12px; border-radius: 6px; display: none; }
-    .message.success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; display: block; }
-    .message.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; display: block; }
-    .protected { display: none; }
-    .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #d1d5db; margin-right: 6px; }
-    .status-dot.active { background: #22c55e; }
-    .status-bar { font-size: 13px; color: #666; display: flex; align-items: center; margin-bottom: 16px; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111;
+      --surface-2: #181818;
+      --border: #222;
+      --border-focus: #444;
+      --text: #ededed;
+      --text-muted: #666;
+      --text-dim: #333;
+      --green: #3ecf8e;
+      --green-bg: rgba(62,207,142,0.07);
+      --green-border: rgba(62,207,142,0.2);
+      --red: #e05555;
+      --red-bg: rgba(224,85,85,0.07);
+      --red-border: rgba(224,85,85,0.2);
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .wrap { width: 100%; max-width: 380px; }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border-focus);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .brand-icon svg {
+      width: 14px;
+      height: 14px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .brand-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      margin-bottom: 24px;
+      transition: all 0.3s;
+    }
+
+    .status-pill.authed {
+      color: var(--green);
+      border-color: var(--green-border);
+      background: var(--green-bg);
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      background: var(--text-dim);
+      transition: background 0.3s;
+    }
+
+    .status-pill.authed .dot { background: var(--green); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-bottom: 10px;
+      animation: fadein 0.18s ease;
+    }
+
+    .card-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text-dim);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 22px;
+    }
+
+    .tab {
+      padding: 8px 16px 9px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: var(--sans);
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 1px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      color: var(--text);
+      font-weight: 500;
+      border-bottom-color: var(--text);
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .field label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      outline: none;
+      border-radius: 0;
+      transition: border-color 0.15s;
+    }
+
+    .field input:focus { border-color: var(--border-focus); }
+    .field input::placeholder { color: var(--text-dim); }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 0;
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      margin-top: 6px;
+      letter-spacing: 0.03em;
+    }
+
+    .btn-primary { background: var(--text); color: #000; }
+    .btn-primary:hover { opacity: 0.85; }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      margin-top: 8px;
+    }
+
+    .btn-ghost:hover { border-color: var(--border-focus); color: var(--text); }
+
+    .msg {
+      display: none;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 9px 12px;
+      margin-top: 14px;
+      line-height: 1.5;
+      border-left: 2px solid;
+    }
+
+    .msg.success { display: block; color: var(--green); border-left-color: var(--green); background: var(--green-bg); }
+    .msg.error { display: block; color: var(--red); border-left-color: var(--red); background: var(--red-bg); }
+
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    .session-email { font-family: var(--mono); font-size: 14px; color: var(--text); margin-bottom: 3px; }
+    .session-role { font-family: var(--mono); font-size: 11px; color: var(--text-muted); }
+
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+    .action-btn {
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--sans);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+      border-radius: 0;
+    }
+
+    .action-btn:hover { border-color: var(--border-focus); color: var(--text); }
+
+    .action-btn.danger { color: var(--red); border-color: var(--red-border); }
+    .action-btn.danger:hover { background: var(--red-bg); border-color: var(--red); }
+
+    .action-route {
+      display: block;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-bottom: 3px;
+    }
+
+    .action-btn:hover .action-route { color: var(--text-muted); }
+
+    .hidden { display: none; }
+
+    @keyframes fadein {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>Auth System</h1>
+<div class="wrap">
 
-  <div class="status-bar">
-    <span class="status-dot" id="status-dot"></span>
-    <span id="status-text">Not logged in</span>
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="0"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <span class="brand-name">auth-system</span>
   </div>
 
-  <!-- Register -->
-  <div class="card" id="register-card">
-    <h2>Register</h2>
-    <input type="email" id="reg-email" placeholder="Email">
-    <input type="password" id="reg-password" placeholder="Password">
-    <button class="btn-primary" onclick="register()">Create account</button>
-    <div class="message" id="reg-msg"></div>
+  <div class="status-pill" id="status-pill">
+    <span class="dot"></span>
+    <span id="status-text">Not Authenticated</span>
   </div>
 
-  <!-- Login -->
-  <div class="card" id="login-card">
-    <h2>Login</h2>
-    <input type="email" id="login-email" placeholder="Email">
-    <input type="password" id="login-password" placeholder="Password">
-    <button class="btn-primary" onclick="login()">Login</button>
-    <div class="message" id="login-msg"></div>
+  <div class="card" id="auth-card">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('login')">login</button>
+      <button class="tab" onclick="switchTab('register')">register</button>
+    </div>
+
+    <div id="login-form">
+      <div class="field">
+        <label>email</label>
+        <input type="email" id="login-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>password</label>
+        <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()">
+      </div>
+      <button class="btn btn-primary" onclick="login()">login →</button>
+      <div class="msg" id="login-msg"></div>
+    </div>
+
+    <div id="register-form" class="hidden">
+      <div class="field">
+        <label>email</label>
+        <input type="email" id="reg-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>password</label>
+        <input type="password" id="reg-password" placeholder="8+ chars · uppercase · number · symbol">
+      </div>
+      <button class="btn btn-primary" onclick="register()">create account →</button>
+      <div class="msg" id="reg-msg"></div>
+    </div>
   </div>
 
-  <!-- Protected content -->
-  <div class="card protected" id="protected-card">
-    <h2>Protected Dashboard</h2>
-    <p id="dashboard-msg" style="font-size:14px;color:#444;margin-bottom:12px;"></p>
-    <button class="btn-secondary" onclick="getDashboard()">Refresh dashboard</button>
-    <button class="btn-secondary" onclick="getAdminUsers()">Try admin route</button>
-    <button class="btn-danger" onclick="logout()">Logout</button>
-    <div class="message" id="protected-msg"></div>
+  <div class="card hidden" id="dashboard-card">
+    <div class="card-label">session</div>
+    <div class="session-email" id="dash-email"></div>
+    <div class="session-role" id="dash-role"></div>
+    <div class="divider"></div>
+    <div class="action-grid">
+      <button class="action-btn" onclick="getDashboard()">
+        <span class="action-route"></span>
+        protected route
+      </button>
+      <button class="action-btn" onclick="getAdminUsers()">
+        <span class="action-route"></span>
+        admin only
+      </button>
+      <button class="action-btn" onclick="refreshToken()">
+        <span class="action-route"></span>
+        refresh token
+      </button>
+      <button class="action-btn danger" onclick="logout()">
+        <span class="action-route"></span>
+        logout
+      </button>
+    </div>
+    <div class="msg" id="dash-msg"></div>
   </div>
+
 </div>
-
 <script>
-  // Access token lives in memory only — never localStorage
   let accessToken = null;
 
-  function showMessage(id, text, type) {
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    document.getElementById('login-form').classList.toggle('hidden', tab !== 'login');
+    document.getElementById('register-form').classList.toggle('hidden', tab !== 'register');
+  }
+
+  function showMsg(id, text, type) {
     const el = document.getElementById(id);
     el.textContent = text;
-    el.className = "message " + type;
+    el.className = 'msg ' + type;
   }
 
-  function setLoggedIn(email, role) {
-    accessToken !== null;
-    document.getElementById("status-dot").classList.add("active");
-    document.getElementById("status-text").textContent = `Logged in as ${email} (${role})`;
-    document.getElementById("register-card").style.display = "none";
-    document.getElementById("login-card").style.display = "none";
-    document.getElementById("protected-card").style.display = "block";
+  function setAuthed(email, role) {
+    document.getElementById('auth-card').classList.add('hidden');
+    document.getElementById('dashboard-card').classList.remove('hidden');
+    document.getElementById('dash-email').textContent = email;
+    document.getElementById('dash-role').textContent = 'role: ' + role;
+    document.getElementById('status-pill').classList.add('authed');
+    document.getElementById('status-text').textContent = 'Authenticated';
   }
 
-  function setLoggedOut() {
+  function setUnauthed() {
     accessToken = null;
-    document.getElementById("status-dot").classList.remove("active");
-    document.getElementById("status-text").textContent = "Not logged in";
-    document.getElementById("register-card").style.display = "block";
-    document.getElementById("login-card").style.display = "block";
-    document.getElementById("protected-card").style.display = "none";
-  }
-
-  async function register() {
-    const email = document.getElementById("reg-email").value;
-    const password = document.getElementById("reg-password").value;
-    const res = await fetch("/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    showMessage("reg-msg", data.message || data.error, res.ok ? "success" : "error");
+    document.getElementById('auth-card').classList.remove('hidden');
+    document.getElementById('dashboard-card').classList.add('hidden');
+    document.getElementById('status-pill').classList.remove('authed');
+    document.getElementById('status-text').textContent = 'Not Authenticated';
   }
 
   async function login() {
-    const email = document.getElementById("login-email").value;
-    const password = document.getElementById("login-password").value;
-    const res = await fetch("/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",   
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    const res = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ email, password })
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (res.ok) {
+      accessToken = data.access_token;
+      setAuthed(email, data.role);
+    } else if (res.status === 429) {
+      showMsg('login-msg', 'Too many login attempts. Try again later.', 'error');
+    } else {
+      showMsg('login-msg', data.error || 'Login failed', 'error');
+    }
+  }
+
+  async function register() {
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+
+    const res = await fetch('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    let data = {};
+    try {
+      data = await res.json();
+    } catch {
+      data = {};
+    }
+
+    if (res.status === 429) {
+      showMsg('reg-msg', 'Too many registration attempts. Try again later.', 'error');
+      return;
+    }
+
+    showMsg('reg-msg', data.message || data.error || 'Request failed', res.ok ? 'success' : 'error');
+
+    if (res.ok) {
+      setTimeout(() => switchTab('login'), 1200);
+    }
+  }
+
+  async function getDashboard() {
+    const res = await fetch('/api/dashboard', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const data = await res.json();
+    showMsg('dash-msg', res.ok ? data.message : (data.error || data.msg), res.ok ? 'success' : 'error');
+  }
+
+  async function getAdminUsers() {
+    const res = await fetch('/api/admin/users', {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    const data = await res.json();
+    showMsg('dash-msg', res.ok ? JSON.stringify(data) : (data.error || data.msg), res.ok ? 'success' : 'error');
+  }
+
+  async function refreshToken() {
+    const res = await fetch('/auth/refresh', {
+      method: 'POST',
+      credentials: 'include'
     });
     const data = await res.json();
     if (res.ok) {
       accessToken = data.access_token;
-      setLoggedIn(email, data.role);
+      showMsg('dash-msg', 'new access token issued', 'success');
     } else {
-      showMessage("login-msg", data.error, "error");
+      showMsg('dash-msg', data.error || data.msg, 'error');
     }
-}
-
-  async function getDashboard() {
-    const res = await fetch("/api/dashboard", {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    const data = await res.json();
-    if (res.ok) {
-      document.getElementById("dashboard-msg").textContent = data.message;
-      showMessage("protected-msg", "Dashboard loaded successfully", "success");
-    } else {
-      showMessage("protected-msg", data.msg || data.error, "error");
-    }
-  }
-
-  async function getAdminUsers() {
-    const res = await fetch("/api/admin/users", {
-      headers: { Authorization: `Bearer ${accessToken}` }
-    });
-    const data = await res.json();
-    showMessage("protected-msg", res.ok ? JSON.stringify(data) : (data.error || data.msg), res.ok ? "success" : "error");
   }
 
   async function logout() {
-    await fetch("/auth/logout", {
-      method: "DELETE",
-      credentials: "include",   // sends the httpOnly cookie along
+    await fetch('/auth/logout', {
+      method: 'DELETE',
+      credentials: 'include',
       headers: { Authorization: `Bearer ${accessToken}` }
     });
-    setLoggedOut();
+    setUnauthed();
   }
 </script>
 </body>
