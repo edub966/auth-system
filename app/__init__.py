@@ -28,4 +28,10 @@ def create_app():
     with app.app_context():
         db.create_all()
 
+    from flask import send_from_directory
+
+    @app.route("/")
+    def index():
+        return send_from_directory("../frontend", "index.html")
+    
     return app

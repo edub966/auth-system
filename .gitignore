@@ -1,0 +1,29 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Database — never commit this
+instance/
+*.db
+*.sqlite3
+
+# Environment variables — never commit secrets
+.env
+.env.local
+.env.production
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# JWT and secret keys if stored locally
+secrets.json
