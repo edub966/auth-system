@@ -110,6 +110,7 @@
     const res = await fetch("/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",   
       body: JSON.stringify({ email, password })
     });
     const data = await res.json();
@@ -119,7 +120,7 @@
     } else {
       showMessage("login-msg", data.error, "error");
     }
-  }
+}
 
   async function getDashboard() {
     const res = await fetch("/api/dashboard", {
@@ -145,6 +146,7 @@
   async function logout() {
     await fetch("/auth/logout", {
       method: "DELETE",
+      credentials: "include",   // sends the httpOnly cookie along
       headers: { Authorization: `Bearer ${accessToken}` }
     });
     setLoggedOut();
