@@ -16,6 +16,8 @@ Built as a reusable backend module that plugs into future projects.
 - Token refresh endpoint for silent re-authentication
 - Logout with a token blocklist that immediately invalidates tokens server-side
 - Minimal HTML/CSS/JS frontend to demo the full auth flow in the browser
+- Rate Limiting
+- httpOnly cookie for refresh tokens to combat XSS attacks
 
 ---
 
