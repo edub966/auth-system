@@ -4,6 +4,7 @@ from app.models import User
 import re
 from flask_jwt_extended import create_access_token, create_refresh_token
 from app.models import User, TokenBlocklist
+from app.extensions import db, bcrypt, limiter
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -22,6 +23,7 @@ def is_valid_password(password):
     return None
 
 @auth_bp.route("/register", methods=["POST"])
+@limiter.limit("3 per minute")
 def register():
     data = request.get_json()
 
@@ -53,6 +55,7 @@ from flask_jwt_extended import create_access_token, create_refresh_token
 from flask import make_response
 
 @auth_bp.route("/login", methods=["POST"])
+@limiter.limit("5 per minute")
 def login():
     data = request.get_json()
 
@@ -71,20 +74,19 @@ def login():
     access_token = create_access_token(identity=user.email, additional_claims=additional_claims)
     refresh_token = create_refresh_token(identity=user.email, additional_claims=additional_claims)
 
-    # Send access token in JSON — frontend stores in memory
+  
     response = make_response(jsonify({
         "access_token": access_token,
         "role": user.role
     }), 200)
 
-    # Send refresh token as httpOnly cookie — JavaScript cannot read this
     response.set_cookie(
         "refresh_token",
         refresh_token,
-        httponly=True,       # blocks JavaScript access
-        secure=False,        # set True in production (requires HTTPS)
-        samesite="Lax",      # prevents cross-site request forgery
-        max_age=60 * 60 * 24 * 7  # 7 days in seconds
+        httponly=True,      
+        secure=False,        
+        samesite="Lax",      
+        max_age=60 * 60 * 24 * 7  
     )
 
     return response
@@ -94,7 +96,7 @@ from flask import request as flask_request
 
 @auth_bp.route("/refresh", methods=["POST"])
 def refresh():
-    # Read refresh token from httpOnly cookie
+   
     refresh_token = flask_request.cookies.get("refresh_token")
     if not refresh_token:
         return jsonify({"error": "No refresh token found"}), 401
